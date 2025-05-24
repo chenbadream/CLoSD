@@ -45,7 +45,13 @@ class AutoRegressiveSampler():
         bs = shape[0]
         n_iterations = (self.required_frames // self.args.pred_len) + 1
         samples_buf = []
-        cur_prefix = deepcopy(kargs['model_kwargs']['y']['prefix'])  # init with data
+        y_kwargs = kargs['model_kwargs']['y']
+        if 'prefix' not in y_kwargs:
+            # fallback: create zero prefix or raise warning
+            cur_prefix = torch.zeros(1, 263, 1, 20, device='cuda:0')
+            print("Warning: 'prefix' not found in model_kwargs['y'], using zero prefix.")
+        else:
+            cur_prefix = deepcopy(y_kwargs['prefix'])
         if self.args.autoregressive_include_prefix:
             samples_buf.append(cur_prefix)
         autoregressive_shape = list(deepcopy(shape))
